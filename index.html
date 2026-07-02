@@ -35,13 +35,16 @@
                 </div>
 
                 <div id="idCard" class="hidden bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 shadow-inner text-center">
-                    <img id="userFoto" src="" alt="Foto" class="w-32 h-32 mx-auto rounded-full object-cover border-4 border-blue-600 shadow-md mb-4">
+                    <div class="w-32 h-32 mx-auto rounded-full bg-gradient-to-tr from-blue-600 to-indigo-700 text-white flex items-center justify-center text-4xl font-bold shadow-md mb-4 border-4 border-white" id="userAvatar">
+                        <!-- Inisial Huruf Jika Foto Kosong -->
+                    </div>
                     <h2 id="userNama" class="text-xl font-bold text-gray-800"></h2>
                     <p id="userNIM" class="text-sm text-gray-500 font-mono mb-1"></p>
                     <span id="userJabatan" class="inline-block bg-blue-600 text-white text-xs px-3 py-1 rounded-full font-semibold mb-6"></span>
-                    <a id="btnWA" href="#" target="_blank" class="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition w-full">
-                        <i class="fa-brands fa-whatsapp text-xl"></i> Hubungi via WhatsApp
-                    </a>
+                    
+                    <div id="containerWA">
+                        <!-- Tombol WA otomatis muncul jika ada datanya -->
+                    </div>
                 </div>
                 
                 <div id="notFound" class="hidden text-center py-12 text-red-400">
@@ -57,7 +60,7 @@
     </div>
 
     <script>
-        // MASUKKAN LINK CSV YANG ADA GID NYA DI SINI
+        // Menggunakan link publikasi dari Google Sheets kamu yang baru
         const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vThmlNzi3hFzEssyegx3_V8VAUN_9NkeKrgITF0kDoWWVuNqNAB8PrrnVfAKtcaKH1ocMYctTMdP2Rs/pub?gid=916888990&single=true&output=csv'; 
         
         let dataAnggota = [];
@@ -67,11 +70,13 @@
                 download: true,
                 header: true,
                 complete: function(results) {
-                    // Mengubah semua nama kolom dari Google Sheets menjadi huruf kecil agar "Kebal Typo"
+                    // Penyesuaian nama kolom otomatis (mengubah semua kolom ke huruf kecil & hapus spasi)
                     dataAnggota = results.data.map(row => {
                         let newRow = {};
                         for (let key in row) {
-                            newRow[key.toLowerCase().trim()] = row[key];
+                            if(key) {
+                                newRow[key.toLowerCase().trim()] = row[key];
+                            }
                         }
                         return newRow;
                     });
@@ -84,7 +89,7 @@
             const keyword = e.target.value.toLowerCase().trim();
             if(keyword === "") { showWelcome(); return; }
 
-            // Mengganti pencarian agar membaca kolom versi huruf kecil (nama, nim, jabatan, whatsapp, foto)
+            // Cari berdasarkan kolom 'nama' atau 'nim' yang ada di Sheets kamu
             const hasil = dataAnggota.find(a => 
                 (a.nama && a.nama.toLowerCase().includes(keyword)) || 
                 (a.nim && a.nim.toLowerCase().includes(keyword))
@@ -98,14 +103,28 @@
             document.getElementById('notFound').classList.add('hidden');
             document.getElementById('idCard').classList.remove('hidden');
 
-            document.getElementById('userNama').innerText = a.nama || "Tanpa Nama";
+            const namaTertera = a.nama || "Tanpa Nama";
+            document.getElementById('userNama').innerText = namaTertera;
             document.getElementById('userNIM').innerText = "NIM: " + (a.nim || "-");
-            document.getElementById('userJabatan').innerText = a.jabatan || "Anggota";
-            document.getElementById('userFoto').src = a.foto ? a.foto : 'https://via.placeholder.com/150/002244/FFFFFF?text=HIMIP';
             
-            let noWA = a.whatsapp || "";
-            if(noWA.startsWith('0')) { noWA = '62' + noWA.slice(1); }
-            document.getElementById('btnWA').href = `https://wa.me/${noWA.replace(/[^0-9]/g, '')}`;
+            // Menggunakan kolom 'prodi' yang ada di Google Sheets kamu
+            document.getElementById('userJabatan').innerText = a.prodi || "Ilmu Pemerintahan";
+            
+            // Membuat inisial huruf besar sebagai pengganti foto
+            document.getElementById('userAvatar').innerText = namaTertera.charAt(0).toUpperCase();
+            
+            // Cek jika ada kolom whatsapp/kontak
+            const containerWA = document.getElementById('containerWA');
+            let kolomWA = a.whatsapp || a.no_hp || a.kontak || "";
+            if(kolomWA) {
+                if(kolomWA.startsWith('0')) { kolomWA = '62' + kolomWA.slice(1); }
+                containerWA.innerHTML = `
+                    <a href="https://wa.me/${kolomWA.replace(/[^0-9]/g, '')}" target="_blank" class="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition w-full">
+                        <i class="fa-brands fa-whatsapp text-xl"></i> Hubungi via WhatsApp
+                    </a>`;
+            } else {
+                containerWA.innerHTML = '';
+            }
         }
 
         function showWelcome() {
@@ -114,7 +133,6 @@
             document.getElementById('notFound').classList.add('hidden');
         }
 
-        // Otomatis membaca QR Code jika ada parameter NIM
         function cekParameterURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const nimParam = urlParams.get('nim');
