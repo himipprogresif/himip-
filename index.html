@@ -4,28 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital ID Card HIMIP</title>
-    <!-- Tailwind CSS Versi Stabil -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome untuk Icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- PapaParse untuk membaca CSV Google Sheets -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased text-gray-800">
 
     <div class="max-w-md mx-auto bg-white min-h-screen shadow-xl flex flex-col justify-between">
-        
         <div>
-            <!-- HEADER & LOGO -->
+            <!-- HEADER -->
             <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-6 rounded-b-3xl shadow-lg text-center">
-                <div class="w-24 h-24 mx-auto mb-3 rounded-full border-4 border-white/20 flex items-center justify-center bg-white text-blue-700 text-3xl font-bold">
-                    H
-                </div>
+                <div class="w-24 h-24 mx-auto mb-3 rounded-full border-4 border-white/20 flex items-center justify-center bg-white text-blue-700 text-3xl font-bold">H</div>
                 <h1 class="text-xl font-bold tracking-wide">HIMIP DIGITAL ID</h1>
                 <p class="text-xs text-blue-200">Himpunan Mahasiswa Ilmu Pemerintahan</p>
             </header>
 
-            <!-- FITUR PENCARIAN -->
+            <!-- PENCARIAN -->
             <div class="p-4 -mt-6">
                 <div class="bg-white rounded-xl shadow-md p-2 flex items-center border border-gray-100">
                     <i class="fa-solid fa-magnifying-glass text-gray-400 ml-3 mr-2"></i>
@@ -33,28 +27,23 @@
                 </div>
             </div>
 
-            <!-- KONTEN UTAMA / BIODATA DIGITAL -->
+            <!-- KONTEN -->
             <main class="p-4">
-                <!-- Tampilan Awal / Selamat Datang -->
                 <div id="welcomeMessage" class="text-center py-12 text-gray-400">
                     <i class="fa-solid fa-id-card text-5xl mb-3 text-blue-200"></i>
-                    <p class="text-sm px-6">Silakan ketik Nama/NIM pada kolom pencarian atau scan QR Code anggota.</p>
+                    <p class="text-sm px-6">Silakan ketik Nama/NIM pada kolom pencarian.</p>
                 </div>
 
-                <!-- Card Biodata -->
                 <div id="idCard" class="hidden bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 shadow-inner text-center">
-                    <img id="userFoto" src="" alt="Foto Anggota" class="w-32 h-32 mx-auto rounded-full object-cover border-4 border-blue-600 shadow-md mb-4">
+                    <img id="userFoto" src="" alt="Foto" class="w-32 h-32 mx-auto rounded-full object-cover border-4 border-blue-600 shadow-md mb-4">
                     <h2 id="userNama" class="text-xl font-bold text-gray-800"></h2>
                     <p id="userNIM" class="text-sm text-gray-500 font-mono mb-1"></p>
                     <span id="userJabatan" class="inline-block bg-blue-600 text-white text-xs px-3 py-1 rounded-full font-semibold mb-6"></span>
-                    
-                    <!-- Tombol WhatsApp -->
                     <a id="btnWA" href="#" target="_blank" class="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition w-full">
                         <i class="fa-brands fa-whatsapp text-xl"></i> Hubungi via WhatsApp
                     </a>
                 </div>
                 
-                <!-- Notifikasi Jika Tidak Ditemukan -->
                 <div id="notFound" class="hidden text-center py-12 text-red-400">
                     <i class="fa-solid fa-circle-xmark text-4xl mb-2"></i>
                     <p class="text-sm font-semibold">Anggota tidak ditemukan.</p>
@@ -62,55 +51,61 @@
             </main>
         </div>
 
-        <!-- FOOTER -->
         <footer class="text-center py-4 text-xs text-gray-400 border-t border-gray-100 bg-gray-50">
-            &copy; 2026 HIMIP Dev Team. All Rights Reserved.
+            &copy; 2026 HIMIP Dev Team.
         </footer>
     </div>
 
     <script>
-        // ==========================================
-        // GANTI TEKS DI BAWAH INI DENGAN LINK CSV KAMU
-        // ==========================================
-        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vThmlNzi3hFzEssyegx3_V8VAUN_9NkeKrgITF0kDoWWVuNqNAB8PrrnVfAKTcaKH1ocMYctTMdP2Rs/pub?gid=916888990&single=true&output=csv'; 
+        // MASUKKAN LINK CSV YANG ADA GID NYA DI SINI
+        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vThmlNzi3hFzEssyegx3_V8VAUN_9NkeKrgITF0kDoWWVuNqNAB8PrrnVfAKtcaKH1ocMYctTMdP2Rs/pub?gid=916888990&single=true&output=csv'; 
         
         let dataAnggota = [];
 
         function loadData() {
-            if (SHEET_CSV_URL === 'PASTE_LINK_CSV_KAMU_DI_SINI') return;
-            
             Papa.parse(SHEET_CSV_URL, {
                 download: true,
                 header: true,
                 complete: function(results) {
-                    dataAnggota = results.data;
+                    // Mengubah semua nama kolom dari Google Sheets menjadi huruf kecil agar "Kebal Typo"
+                    dataAnggota = results.data.map(row => {
+                        let newRow = {};
+                        for (let key in row) {
+                            newRow[key.toLowerCase().trim()] = row[key];
+                        }
+                        return newRow;
+                    });
                     cekParameterURL();
                 }
             });
         }
 
         document.getElementById('searchInput').addEventListener('input', function(e) {
-            const keyword = e.target.value.toLowerCase();
+            const keyword = e.target.value.toLowerCase().trim();
             if(keyword === "") { showWelcome(); return; }
 
-            const hasil = dataAnggota.find(anggota => 
-                (anggota.Nama && anggota.Nama.toLowerCase().includes(keyword)) || 
-                (anggota.NIM && anggota.NIM.includes(keyword))
+            // Mengganti pencarian agar membaca kolom versi huruf kecil (nama, nim, jabatan, whatsapp, foto)
+            const hasil = dataAnggota.find(a => 
+                (a.nama && a.nama.toLowerCase().includes(keyword)) || 
+                (a.nim && a.nim.toLowerCase().includes(keyword))
             );
 
             if(hasil) { tampilkanBiodata(hasil); } else { showNotFound(); }
         });
 
-        function tampilkanBiodata(anggota) {
+        function tampilkanBiodata(a) {
             document.getElementById('welcomeMessage').classList.add('hidden');
             document.getElementById('notFound').classList.add('hidden');
             document.getElementById('idCard').classList.remove('hidden');
 
-            document.getElementById('userNama').innerText = anggota.Nama;
-            document.getElementById('userNIM').innerText = "NIM: " + anggota.NIM;
-            document.getElementById('userJabatan').innerText = anggota.Jabatan;
-            document.getElementById('userFoto').src = anggota.Foto ? anggota.Foto : 'https://via.placeholder.com/150/002244/FFFFFF?text=HIMIP';
-            document.getElementById('btnWA').href = https://wa.me/${anggota.WhatsApp};
+            document.getElementById('userNama').innerText = a.nama || "Tanpa Nama";
+            document.getElementById('userNIM').innerText = "NIM: " + (a.nim || "-");
+            document.getElementById('userJabatan').innerText = a.jabatan || "Anggota";
+            document.getElementById('userFoto').src = a.foto ? a.foto : 'https://via.placeholder.com/150/002244/FFFFFF?text=HIMIP';
+            
+            let noWA = a.whatsapp || "";
+            if(noWA.startsWith('0')) { noWA = '62' + noWA.slice(1); }
+            document.getElementById('btnWA').href = `https://wa.me/${noWA.replace(/[^0-9]/g, '')}`;
         }
 
         function showWelcome() {
@@ -119,23 +114,23 @@
             document.getElementById('notFound').classList.add('hidden');
         }
 
-        function showNotFound() {
-            document.getElementById('welcomeMessage').classList.add('hidden');
-            document.getElementById('idCard').classList.add('hidden');
-            document.getElementById('notFound').classList.remove('hidden');
-        }
-
-        // Fitur otomatis membaca QR Code
+        // Otomatis membaca QR Code jika ada parameter NIM
         function cekParameterURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const nimParam = urlParams.get('nim');
             if(nimParam) {
-                const blackjack = dataAnggota.find(a => a.NIM && a.NIM.trim() === nimParam.trim());
-                if(blackjack) {
-                    tampilkanBiodata(blackjack);
+                const hasil = dataAnggota.find(a => a.nim && a.nim.trim() === nimParam.trim());
+                if(hasil) {
+                    tampilkanBiodata(hasil);
                     document.getElementById('searchInput').value = nimParam;
                 }
             }
+        }
+
+        function showNotFound() {
+            document.getElementById('welcomeMessage').classList.add('hidden');
+            document.getElementById('idCard').classList.add('hidden');
+            document.getElementById('notFound').classList.remove('hidden');
         }
 
         window.onload = loadData;
