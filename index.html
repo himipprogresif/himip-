@@ -3,104 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Database HIMIP</title>
-
-    <link rel="stylesheet" href="style.css">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Profil Anggota</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); text-align: center; width: 300px; }
+        .avatar { width: 100px; height: 100px; background: #007bff; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 36px; margin: 0 auto 15px; font-weight: bold; }
+        h2 { margin: 10px 0 5px; color: #333; }
+        p { margin: 5px 0; color: #666; font-size: 14px; }
+        .id-badge { background: #e1f0ff; color: #007bff; padding: 5px 10px; border-radius: 20px; display: inline-block; font-size: 12px; font-weight: bold; margin-top: 10px; }
+    </style>
 </head>
-
 <body>
 
-<header>
-
-<div class="hero">
-
-<h1>HIMPUNAN MAHASISWA ILMU PEMERINTAHAN</h1>
-
-<p>DATABASE DIGITAL PENGURUS HIMIP</p>
-
-<input
-type="text"
-id="search"
-placeholder="Cari Nama, NIM atau Jabatan..."
->
-
-</div>
-
-</header>
-
-<section id="anggota"></section>
-
-<div id="detail" class="hidden">
-
 <div class="card">
-
-<button class="back" onclick="kembali()">
-
-← Kembali
-
-</button>
-
-<h2 id="nama"></h2>
-
-<div class="item">
-
-<label>NIM</label>
-
-<p id="nim"></p>
-
+    <div class="avatar" id="inisial">-</div>
+    <h2 id="nama">Memuat...</h2>
+    <p id="jabatan">-</p>
+    <div class="id-badge" id="id-anggota">-</div>
 </div>
 
-<div class="item">
+<script>
+    // Mengambil parameter ID dari URL web (misal: website.com/?id=1)
+    const urlParams = new URLSearchParams(window.location.search);
+    const idSaran = urlParams.get('id');
 
-<label>Program Studi</label>
+    // Link CSV Google Sheets kamu
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vThmlNzi3hFzEssyegx3_V8VAUN_9NkeKrgITF0kDoWWVuNqNAB8PrrnVfAKTcaKH1ocMYctTMdP2Rs/pub?output=csv";
 
-<p>Ilmu Pemerintahan</p>
+    fetch(csvUrl)
+    .then(response => response.text())
+    .then(data => {
+        const rows = data.split("\n").map(row => row.split(","));
+        // Mencari baris anggota berdasarkan nomor ID di Kolom ke-2 (Baris B)
+        const anggota = rows.find(row => row[1] && row[1].trim() === idSaran);
 
-</div>
-
-<div class="item">
-
-<label>Angkatan</label>
-
-<p id="angkatan"></p>
-
-</div>
-
-<div class="item">
-
-<label>Jabatan</label>
-
-<p id="jabatan"></p>
-
-</div>
-
-<div class="item">
-
-<label>WhatsApp</label>
-
-<p id="wa"></p>
-
-</div>
-
-<a id="chatwa" target="_blank">
-
-<button class="wa">
-
-Hubungi WhatsApp
-
-</button>
-
-</a>
-
-</div>
-
-</div>
-
-<script src="script.js"></script>
-
+        if(anggota) {
+            document.getElementById('nama').innerText = anggota[0]; // Kolom A
+            document.getElementById('id-anggota').innerText = "ID: " + anggota[1]; // Kolom B
+            document.getElementById('jabatan').innerText = anggota[2]; // Kolom C
+            document.getElementById('inisial').innerText = anggota[0].charAt(0);
+        } else {
+            document.getElementById('nama').innerText = "Anggota Tidak Ditemukan";
+        }
+    });
+</script>
 </body>
 </html>
